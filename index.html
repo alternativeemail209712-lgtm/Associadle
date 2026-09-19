@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no" />
+<title>Associadle Live</title>
+<style>
+  :root{
+    --pink:#fe2c55;
+    --cyan:#25f4ee;
+    --bg:#0d0d12;
+    --panel:#17171f;
+    --panel2:#1e1e29;
+    --border:#2c2c3a;
+    --text:#f2f2f7;
+    --muted:#9a9aab;
+    --green:#2ecc71;
+    --yellow:#f5c518;
+    --vh: 1vh;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    min-height:calc(var(--vh) * 100);
+    -webkit-tap-highlight-color:transparent;
+  }
+  #app{ display:flex; flex-direction:column; min-height:calc(var(--vh) * 100); }
+
+  /* ---------- HEADER ---------- */
+  header{
+    position:sticky; top:0; z-index:50;
+    background:linear-gradient(90deg, var(--pink), #b0224a 60%, var(--panel));
+    padding:10px 14px;
+    display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 2px 10px rgba(0,0,0,.4);
+  }
+  header h1{ font-size:17px; margin:0; letter-spacing:.5px; }
+  header h1 span{ color:var(--cyan); }
+  .status-dot{ width:10px;height:10px;border-radius:50%; background:#666; display:inline-block; margin-right:6px; box-shadow:0 0 6px #000 inset;}
+  .status-dot.on{ background:var(--green); box-shadow:0 0 8px var(--green);}
+  .status-dot.err{ background:var(--pink); box-shadow:0 0 8px var(--pink);}
+  .status-dot.mid{ background:var(--yellow); box-shadow:0 0 8px var(--yellow);}
+  .conn-pill{ font-size:11px; display:flex; align-items:center; background:rgba(0,0,0,.35); padding:4px 8px; border-radius:20px;}
+
+  /* ---------- TABS ---------- */
+  .tabs{
+    position:sticky; top:41px; z-index:49;
+    display:flex; background:var(--panel); border-bottom:1px solid var(--border);
+  }
+  .tabs button{
+    flex:1; padding:10px 4px; background:none; border:none; color:var(--muted);
+    font-size:13px; font-weight:600; cursor:pointer; border-bottom:3px solid transparent;
+  }
+  .tabs button.active{ color:var(--text); border-bottom-color:var(--cyan); }
+
+  /* ---------- LEGEND ---------- */
+  .legend{
+    background:linear-gradient(90deg,#241a2e,#191c2e);
+    border-bottom:1px solid var(--border);
+    padding:10px 14px; font-size:12.5px; line-height:1.5; color:#e8e8f5;
+  }
+  .legend b{ color:var(--cyan); }
+  .legend code{ background:#000; padding:1px 6px; border-radius:4px; color:var(--yellow); }
+  .legend-toggle{ float:right; background:none; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:2px 8px; font-size:11px; cursor:pointer;}
+
+  /* ---------- MODE PANELS ---------- */
+  .mode-panel{ display:none; padding:12px 14px; background:var(--panel2); border-bottom:1px solid var(--border); }
+  .mode-panel.active{ display:block; }
+  .field-row{ display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .field-row input, .field-row select{
+    flex:1; min-width:100px; padding:9px 10px; border-radius:8px; border:1px solid var(--border);
+    background:#0f0f16; color:var(--text); font-size:14px;
+  }
+  button.btn{
+    padding:9px 14px; border-radius:8px; border:none; cursor:pointer; font-weight:700; font-size:13px;
+    background:var(--pink); color:white; white-space:nowrap;
+  }
+  button.btn.secondary{ background:var(--panel); border:1px solid var(--border); color:var(--text); }
+  button.btn.cyan{ background:var(--cyan); color:#00312f; }
+  button.btn:disabled{ opacity:.4; cursor:not-allowed; }
+  .hint-text{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+  .tiktok-status-box{ margin-top:8px; font-size:12.5px; padding:8px 10px; border-radius:8px; background:#0f0f16; border:1px solid var(--border); }
+
+  /* ---------- HOST CONTROLS (sticky bottom) ---------- */
+  .host-controls{
+    position:sticky; bottom:0; z-index:48;
+    background:#111119; border-top:2px solid var(--pink);
+    padding:10px 14px; box-shadow:0 -4px 12px rgba(0,0,0,.45);
+  }
+  .host-controls h3{ margin:0 0 8px; font-size:12px; color:var(--cyan); text-transform:uppercase; letter-spacing:1px;}
+  .host-grid{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px;}
+  .host-grid select{ padding:8px; border-radius:8px; background:#0f0f16; color:var(--text); border:1px solid var(--border);}
+
+  /* ---------- GAME AREA ---------- */
+  .game-area{ padding:14px; flex:1; }
+  .word-blanks{ display:flex; gap:6px; justify-content:center; flex-wrap:wrap; margin-bottom:10px;}
+  .blank-box{
+    width:28px; height:34px; border-bottom:3px solid var(--cyan); display:flex; align-items:center; justify-content:center;
+    font-weight:800; font-size:18px; color:var(--text);
+  }
+  .hints-box{ background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:10px 12px; margin-bottom:14px;}
+  .hints-box h4{ margin:0 0 6px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:1px;}
+  .hint-chip{ display:inline-block; background:#241f2e; border:1px solid var(--border); color:#dcd6ff; padding:4px 10px; border-radius:20px; font-size:12.5px; margin:3px 4px 0 0;}
+
+  .winner-banner{
+    display:none; text-align:center; background:linear-gradient(90deg,var(--pink),var(--cyan));
+    color:#0a0a0a; font-weight:800; padding:12px; border-radius:10px; margin-bottom:12px; font-size:14px;
+    animation:pop .35s ease;
+  }
+  @keyframes pop{ from{ transform:scale(.85); opacity:0;} to{ transform:scale(1); opacity:1;} }
+
+  .board-wrap{ overflow-x:auto; }
+  .board-grid{
+    display:grid; grid-template-columns: 26px repeat(8, minmax(38px, 1fr));
+    gap:4px; width:100%; min-width:360px;
+  }
+  .cell{
+    background:#14141c; border:1px solid var(--border); border-radius:6px;
+    min-height:44px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+    font-size:10px; padding:2px; overflow:hidden; position:relative;
+  }
+  .cell .g{ font-size:11px; font-weight:700; color:var(--text); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .cell .u{ font-size:8px; color:var(--muted); max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+  .cell.correct{ background:rgba(46,204,113,.25); border-color:var(--green); }
+  .cell.correct .g{ color:var(--green); }
+  .col-label, .row-label{
+    display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted); font-weight:700;
+  }
+
+  /* ---------- LEADERBOARD ---------- */
+  .leaderboard{ padding:0 14px 14px; }
+  .leaderboard h3{ font-size:13px; color:var(--cyan); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;}
+  table.lb{ width:100%; border-collapse:collapse; background:var(--panel); border-radius:10px; overflow:hidden; }
+  table.lb th, table.lb td{ padding:8px 10px; font-size:13px; text-align:left; border-bottom:1px solid var(--border); }
+  table.lb th{ color:var(--muted); font-size:11px; text-transform:uppercase;}
+  table.lb tr:last-child td{ border-bottom:none; }
+  .rank1{ color:var(--yellow); font-weight:800;}
+
+  /* ---------- DIAGNOSTICS FOOTER ---------- */
+  .diagnostics-bar{
+    position:sticky; bottom:0; z-index:47;
+    background:#000; color:#8ef58a; font-family:monospace; font-size:10.5px;
+    padding:6px 10px; border-top:1px solid #123; display:flex; flex-wrap:wrap; gap:10px;
+  }
+  .diagnostics-bar b{ color:#fff; }
+
+  ::-webkit-scrollbar{ height:6px; width:6px; }
+  ::-webkit-scrollbar-thumb{ background:#333; border-radius:4px; }
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header>
+    <h1>🎯 ASSOCIA<span>DLE</span> LIVE</h1>
+    <div class="conn-pill"><span id="serverDot" class="status-dot"></span><span id="serverStatusText">connecting…</span></div>
+  </header>
+
+  <div class="tabs">
+    <button data-mode="live" class="active">📡 Live Mode</button>
+    <button data-mode="test">🧪 Test Mode</button>
+    <button data-mode="offline">🎮 Offline Mode</button>
+  </div>
+
+  <div class="legend" id="legendBox">
+    <button class="legend-toggle" id="legendToggle">hide</button>
+    <div id="legendBody">
+      <b>HOW TO PLAY:</b> Pick any open box and type its coordinate, then your guess — like <code>A2 apple</code> —
+      to place your guess on the board! Use the clue words above the board to figure out the secret word.
+      <b>First correct guess wins the round</b> and takes the top leaderboard spot. Fewer hints used + faster guesses = more points!
+    </div>
+  </div>
+
+  <!-- LIVE MODE PANEL -->
+  <div class="mode-panel active" id="panel-live">
+    <div class="field-row">
+      <input id="liveUsername" type="text" placeholder="TikTok username (no @), e.g. yourchannel" />
+    </div>
+    <div class="field-row">
+      <input id="liveSignKey" type="text" placeholder="Signing API key (e.g. from eulerstream.com)" />
+    </div>
+    <div class="field-row">
+      <button class="btn" id="connectBtn">Connect to TikTok LIVE</button>
+      <button class="btn secondary" id="disconnectBtn">Disconnect</button>
+    </div>
+    <div class="hint-text">A signing key is required — get a free one at eulerstream.com. This connects to real audience chat.</div>
+    <div class="tiktok-status-box" id="tiktokStatusBox">Not connected.</div>
+  </div>
+
+  <!-- TEST MODE PANEL -->
+  <div class="mode-panel" id="panel-test">
+    <div class="field-row">
+      <button class="btn cyan" id="simRandomBtn">🎲 Simulate Random Fake Chat</button>
+      <button class="btn secondary" id="simAutoBtn">▶ Auto-Simulate: OFF</button>
+    </div>
+    <div class="field-row">
+      <input id="testUser" type="text" placeholder="Fake username" value="viewer123" />
+      <input id="testMsg" type="text" placeholder="Fake message, e.g. A2 apple" />
+      <button class="btn" id="testSendBtn">Send</button>
+    </div>
+    <div class="hint-text">Use this to test the whole game locally — no TikTok login needed.</div>
+  </div>
+
+  <!-- OFFLINE MODE PANEL -->
+  <div class="mode-panel" id="panel-offline">
+    <div class="field-row">
+      <input id="offlineUser" type="text" placeholder="Your name" value="You" />
+      <input id="offlineMsg" type="text" placeholder="Your guess, e.g. A2 apple" />
+      <button class="btn" id="offlineSendBtn">Submit Guess</button>
+    </div>
+    <div class="hint-text">Play solo — type your own guesses here, no audience needed.</div>
+  </div>
+
+  <!-- HOST CONTROLS -->
+  <div class="host-controls">
+    <h3>Host Controls</h3>
+    <div class="host-grid">
+      <select id="lengthSelect"></select>
+      <button class="btn" id="startRoundBtn">🆕 New Round</button>
+      <button class="btn secondary" id="hintBtn">💡 Reveal Hint</button>
+      <button class="btn secondary" id="endRoundBtn">🏁 Reveal Answer</button>
+      <button class="btn secondary" id="resetBoardBtn">🧹 Clear Board</button>
+    </div>
+    <div class="field-row" style="margin-bottom:0;">
+      <input id="hostInject" type="text" placeholder="Type as chat / manual comment, e.g. A2 apple" />
+      <button class="btn" id="hostInjectBtn">Send</button>
+    </div>
+  </div>
+
+  <div class="game-area">
+    <div class="winner-banner" id="winnerBanner"></div>
+    <div class="word-blanks" id="wordBlanks"></div>
+    <div class="hints-box">
+      <h4>Clue Words Revealed</h4>
+      <div id="hintsList"><span class="hint-text">Start a round to see clues.</span></div>
+    </div>
+    <div class="board-wrap">
+      <div class="board-grid" id="boardGrid"></div>
+    </div>
+  </div>
+
+  <div class="leaderboard">
+    <h3>🏆 Top 10 Leaderboard</h3>
+    <table class="lb">
+      <thead><tr><th>#</th><th>Player</th><th>Score</th><th>Wins</th></tr></thead>
+      <tbody id="leaderboardBody"><tr><td colspan="4" class="hint-text">No scores yet.</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="diagnostics-bar">
+    <span>EVENTS: <b id="diagEvents">0</b></span>
+    <span>LAST: <b id="diagLast">—</b></span>
+    <span>TIKTOK: <b id="diagTiktok">disconnected</b></span>
+  </div>
+
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ---------------- MOBILE VIEWPORT FIX ----------------
+  function setVh(){
+    const vh = window.innerHeight * 0.01;
+    document.documentElement.style.setProperty('--vh', vh + 'px');
+  }
+  setVh();
+  window.addEventListener('resize', setVh);
+  window.addEventListener('orientationchange', setVh);
+
+  // ---------------- SOCKET ----------------
+  const socket = io();
+  const COLS = ["A","B","C","D","E","F","G","H"];
+  const ROWS = [1,2,3,4,5,6,7,8];
+
+  const serverDot = document.getElementById('serverDot');
+  const serverStatusText = document.getElementById('serverStatusText');
+
+  socket.on('connect', () => {
+    serverDot.className = 'status-dot on';
+    serverStatusText.textContent = 'server connected';
+  });
+  socket.on('disconnect', () => {
+    serverDot.className = 'status-dot err';
+    serverStatusText.textContent = 'server disconnected';
+  });
+
+  // ---------------- MODE TABS ----------------
+  const tabButtons = document.querySelectorAll('.tabs button');
+  tabButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+      tabButtons.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('panel-' + btn.dataset.mode).classList.add('active');
+    });
+  });
+
+  // ---------------- LEGEND TOGGLE ----------------
+  document.getElementById('legendToggle').addEventListener('click', () => {
+    const body = document.getElementById('legendBody');
+    const btn = document.getElementById('legendToggle');
+    const hidden = body.style.display === 'none';
+    body.style.display = hidden ? 'block' : 'none';
+    btn.textContent = hidden ? 'hide' : 'show';
+  });
+
+  // ---------------- LENGTH SELECT ----------------
+  const lengthSelect = document.getElementById('lengthSelect');
+  function populateLengths(lengths){
+    lengthSelect.innerHTML = '';
+    (lengths && lengths.length ? lengths : Array.from({length:17},(_,i)=>i+4)).forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l; opt.textContent = l + ' letters';
+      if (l === 6) opt.selected = true;
+      lengthSelect.appendChild(opt);
+    });
+  }
+  populateLengths([]);
+
+  // ---------------- BOARD RENDER ----------------
+  const boardGrid = document.getElementById('boardGrid');
+  function renderBoardSkeleton(){
+    boardGrid.innerHTML = '';
+    boardGrid.appendChild(document.createElement('div')); // corner
+    COLS.forEach(c => {
+      const d = document.createElement('div');
+      d.className = 'col-label'; d.textContent = c;
+      boardGrid.appendChild(d);
+    });
+    ROWS.forEach(r => {
+      const rl = document.createElement('div');
+      rl.className = 'row-label'; rl.textContent = r;
+      boardGrid.appendChild(rl);
+      COLS.forEach(c => {
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.id = 'cell-' + c + r;
+        boardGrid.appendChild(cell);
+      });
+    });
+  }
+  renderBoardSkeleton();
+
+  function renderBoard(board){
+    for (const key in board){
+      const el = document.getElementById('cell-' + key);
+      if (!el) continue;
+      const data = board[key];
+      el.className = 'cell' + (data.correct ? ' correct' : '');
+      el.innerHTML = data.guess
+        ? '<div class="g">' + escapeHtml(data.guess) + '</div><div class="u">' + escapeHtml(data.username) + '</div>'
+        : '';
+    }
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, s => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[s]));
+  }
+
+  // ---------------- ROUND RENDER ----------------
+  const wordBlanks = document.getElementById('wordBlanks');
+  const hintsList = document.getElementById('hintsList');
+  const winnerBanner = document.getElementById('winnerBanner');
+  const hintBtn = document.getElementById('hintBtn');
+
+  function renderRound(round){
+    wordBlanks.innerHTML = '';
+    const len = round.blanks || 0;
+    for (let i=0; i<len; i++){
+      const box = document.createElement('div');
+      box.className = 'blank-box';
+      if (!round.active && round.answer) box.textContent = round.answer[i];
+      wordBlanks.appendChild(box);
+    }
+
+    hintsList.innerHTML = '';
+    if (round.hints && round.hints.length){
+      round.hints.forEach(h => {
+        const chip = document.createElement('span');
+        chip.className = 'hint-chip';
+        chip.textContent = h;
+        hintsList.appendChild(chip);
+      });
+    } else {
+      hintsList.innerHTML = '<span class="hint-text">Start a round to see clues.</span>';
+    }
+
+    hintBtn.disabled = !round.active;
+
+    if (round.winner){
+      winnerBanner.style.display = 'block';
+      winnerBanner.textContent = '🎉 ' + round.winner.username + ' WINS! +' + round.winner.points + ' pts — the word was ' + round.winner.word;
+    } else if (!round.active && round.answer){
+      winnerBanner.style.display = 'block';
+      winnerBanner.textContent = '⏰ Round ended. The word was ' + round.answer + '.';
+    } else {
+      winnerBanner.style.display = 'none';
+    }
+  }
+
+  // ---------------- LEADERBOARD RENDER ----------------
+  const leaderboardBody = document.getElementById('leaderboardBody');
+  function renderLeaderboard(list){
+    if (!list || !list.length){
+      leaderboardBody.innerHTML = '<tr><td colspan="4" class="hint-text">No scores yet.</td></tr>';
+      return;
+    }
+    leaderboardBody.innerHTML = list.map((p, i) =>
+      '<tr><td class="' + (i===0?'rank1':'') + '">' + (i+1) + '</td><td>' + escapeHtml(p.username) + '</td><td>' + p.score + '</td><td>' + p.wins + '</td></tr>'
+    ).join('');
+  }
+
+  // ---------------- DIAGNOSTICS RENDER ----------------
+  function renderDiagnostics(diag){
+    document.getElementById('diagEvents').textContent = diag.rawEventCount;
+    document.getElementById('diagLast').textContent = diag.lastUser ? (diag.lastUser + ': ' + diag.lastText) : '—';
+  }
+
+  // ---------------- TIKTOK STATUS RENDER ----------------
+  function renderTikTokStatus(t){
+    const box = document.getElementById('tiktokStatusBox');
+    box.textContent = t.message || t.status;
+    document.getElementById('diagTiktok').textContent = t.status;
+  }
+
+  // ---------------- SOCKET EVENT WIRING ----------------
+  socket.on('state:full', (data) => {
+    populateLengths(data.availableLengths);
+    renderBoard(data.board);
+    renderRound(data.round);
+    renderLeaderboard(data.leaderboard);
+    renderDiagnostics(data.diagnostics);
+    renderTikTokStatus(data.tiktok);
+  });
+  socket.on('board:update', renderBoard);
+  socket.on('round:update', renderRound);
+  socket.on('leaderboard:update', renderLeaderboard);
+  socket.on('diagnostics:update', renderDiagnostics);
+  socket.on('tiktok:status', renderTikTokStatus);
+
+  // ---------------- HOST CONTROL BUTTONS ----------------
+  document.getElementById('startRoundBtn').addEventListener('click', () => {
+    socket.emit('host:startRound', { length: Number(lengthSelect.value) });
+  });
+  document.getElementById('hintBtn').addEventListener('click', () => {
+    socket.emit('host:revealHint');
+  });
+  document.getElementById('endRoundBtn').addEventListener('click', () => {
+    socket.emit('host:endRound');
+  });
+  document.getElementById('resetBoardBtn').addEventListener('click', () => {
+    socket.emit('host:resetBoard');
+  });
+  document.getElementById('hostInjectBtn').addEventListener('click', () => {
+    const input = document.getElementById('hostInject');
+    if (!input.value.trim()) return;
+    socket.emit('chat:inject', { username: 'Host', text: input.value });
+    input.value = '';
+  });
+  document.getElementById('hostInject').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('hostInjectBtn').click();
+  });
+
+  // ---------------- LIVE MODE ----------------
+  document.getElementById('connectBtn').addEventListener('click', () => {
+    const username = document.getElementById('liveUsername').value;
+    const signApiKey = document.getElementById('liveSignKey').value;
+    socket.emit('host:connectTikTok', { username, signApiKey });
+  });
+  document.getElementById('disconnectBtn').addEventListener('click', () => {
+    socket.emit('host:disconnectTikTok');
+  });
+
+  // ---------------- TEST MODE ----------------
+  const FAKE_USERS = ["dance_queen22","tiktoker_max","liveFanatic","xoxo_sara","viewer_bob","gamer_gigi","chattycathy","user_888"];
+  const FAKE_WORDS = ["apple","tiger","house","robot","plane","music","water","spark","cloud","brave"];
+  function randomFakeMessage(){
+    const col = COLS[Math.floor(Math.random()*COLS.length)];
+    const row = ROWS[Math.floor(Math.random()*ROWS.length)];
+    const word = FAKE_WORDS[Math.floor(Math.random()*FAKE_WORDS.length)];
+    return col + row + ' ' + word;
+  }
+  document.getElementById('simRandomBtn').addEventListener('click', () => {
+    const user = FAKE_USERS[Math.floor(Math.random()*FAKE_USERS.length)];
+    socket.emit('chat:inject', { username: user, text: randomFakeMessage() });
+  });
+  let autoSimTimer = null;
+  document.getElementById('simAutoBtn').addEventListener('click', (e) => {
+    if (autoSimTimer){
+      clearInterval(autoSimTimer);
+      autoSimTimer = null;
+      e.target.textContent = '▶ Auto-Simulate: OFF';
+    } else {
+      autoSimTimer = setInterval(() => {
+        const user = FAKE_USERS[Math.floor(Math.random()*FAKE_USERS.length)];
+        socket.emit('chat:inject', { username: user, text: randomFakeMessage() });
+      }, 4000);
+      e.target.textContent = '⏸ Auto-Simulate: ON';
+    }
+  });
+  document.getElementById('testSendBtn').addEventListener('click', () => {
+    const user = document.getElementById('testUser').value || 'viewer';
+    const msg = document.getElementById('testMsg').value;
+    if (!msg.trim()) return;
+    socket.emit('chat:inject', { username: user, text: msg });
+    document.getElementById('testMsg').value = '';
+  });
+
+  // ---------------- OFFLINE MODE ----------------
+  document.getElementById('offlineSendBtn').addEventListener('click', () => {
+    const user = document.getElementById('offlineUser').value || 'You';
+    const msg = document.getElementById('offlineMsg').value;
+    if (!msg.trim()) return;
+    socket.emit('chat:inject', { username: user, text: msg });
+    document.getElementById('offlineMsg').value = '';
+  });
+  document.getElementById('offlineMsg').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('offlineSendBtn').click();
+  });
+
+})();
+</script>
+</body>
+</html>
