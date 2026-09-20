@@ -9,10 +9,9 @@
     --pink:#fe2c55;
     --cyan:#25f4ee;
     --bg:#0b0b12;
-    --bg2:#151220;
-    --panel:#181622;
-    --panel2:#1f1c2c;
-    --border:#302c42;
+    --panel:#171522;
+    --panel2:#1e1b2a;
+    --border:#2c2840;
     --text:#f5f5fb;
     --muted:#9d9ab3;
     --gold:#f5c518;
@@ -22,8 +21,8 @@
   html,body{margin:0;padding:0;}
   body{
     background:
-      radial-gradient(circle at 15% 0%, rgba(254,44,85,.20), transparent 45%),
-      radial-gradient(circle at 90% 15%, rgba(37,244,238,.15), transparent 40%),
+      radial-gradient(circle at 15% 0%, rgba(254,44,85,.18), transparent 45%),
+      radial-gradient(circle at 90% 10%, rgba(37,244,238,.13), transparent 40%),
       var(--bg);
     color:var(--text);
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
@@ -32,73 +31,35 @@
   }
   #app{ display:flex; flex-direction:column; min-height:calc(var(--vh) * 100); position:relative; }
 
-  /* ---------- HEADER ---------- */
+  /* ---------- HEADER (clean, audience-facing) ---------- */
   header{
     position:sticky; top:0; z-index:60;
-    background:linear-gradient(90deg, var(--pink), #8b1d63 55%, #1c1730);
-    padding:10px 14px;
-    display:flex; align-items:center; justify-content:space-between;
+    background:linear-gradient(90deg, var(--pink), #8b1d63 60%, #1c1730);
+    padding:10px 12px; display:flex; align-items:center; justify-content:space-between;
     box-shadow:0 3px 14px rgba(0,0,0,.5);
   }
-  header .brand{ display:flex; align-items:center; gap:8px; }
-  header .brand .logo{
-    width:30px;height:30px;border-radius:9px;
-    background:linear-gradient(135deg,var(--cyan),var(--pink));
-    display:flex;align-items:center;justify-content:center;font-size:15px;
-    box-shadow:0 0 10px rgba(37,244,238,.6);
-  }
-  header h1{ font-size:15px; margin:0; letter-spacing:.3px; line-height:1.15;}
-  header h1 small{ display:block; font-weight:400; font-size:10px; color:#ffd9e4; }
-  .status-dot{ width:9px;height:9px;border-radius:50%; background:#666; display:inline-block; margin-right:6px;}
+  header .brand{ display:flex; align-items:center; gap:8px; min-width:0; }
+  header .brand .logo{ width:28px;height:28px;border-radius:8px; background:linear-gradient(135deg,var(--cyan),var(--pink)); display:flex;align-items:center;justify-content:center;font-size:14px; flex-shrink:0; }
+  header h1{ font-size:14px; margin:0; letter-spacing:.3px; line-height:1.15; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  header h1 small{ display:block; font-weight:400; font-size:9.5px; color:#ffd9e4; }
+  header .header-right{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
+  .status-dot{ width:8px;height:8px;border-radius:50%; background:#666; display:inline-block; margin-right:5px;}
   .status-dot.on{ background:#2ecc71; box-shadow:0 0 8px #2ecc71;}
   .status-dot.err{ background:var(--pink); box-shadow:0 0 8px var(--pink);}
-  .conn-pill{ font-size:10.5px; display:flex; align-items:center; background:rgba(0,0,0,.35); padding:4px 8px; border-radius:20px;}
+  .conn-pill{ font-size:10px; display:flex; align-items:center; background:rgba(0,0,0,.35); padding:4px 8px; border-radius:20px; white-space:nowrap;}
+  #settingsBtn{ width:32px;height:32px;border-radius:9px; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.2); color:#fff; font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center; }
 
-  /* ---------- TABS ---------- */
-  .tabs{ position:sticky; top:47px; z-index:59; display:flex; background:var(--panel); border-bottom:1px solid var(--border); }
-  .tabs button{ flex:1; padding:9px 4px; background:none; border:none; color:var(--muted); font-size:12.5px; font-weight:700; cursor:pointer; border-bottom:3px solid transparent; }
-  .tabs button.active{ color:var(--text); border-bottom-color:var(--cyan); }
-
-  /* ---------- LEGEND ---------- */
-  .legend{ background:linear-gradient(90deg,#28152f,#161a30); border-bottom:1px solid var(--border); padding:9px 14px; font-size:12px; line-height:1.5; color:#eae7ff; }
+  /* ---------- RULES LEGEND (audience-facing, concise) ---------- */
+  .legend{ background:linear-gradient(90deg,#26142c,#151a2e); border-bottom:1px solid var(--border); padding:9px 14px; font-size:12px; line-height:1.55; color:#eae7ff; }
   .legend b{ color:var(--cyan); }
-  .legend code{ background:#000; padding:1px 6px; border-radius:4px; color:var(--gold); }
-  .legend-toggle{ float:right; background:none; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:2px 8px; font-size:10.5px; cursor:pointer;}
+  .legend code{ background:#000; padding:1px 6px; border-radius:4px; color:var(--gold); font-weight:700; }
+  .legend-toggle{ float:right; background:none; border:1px solid var(--border); color:var(--muted); border-radius:6px; padding:2px 8px; font-size:10px; cursor:pointer;}
 
-  /* ---------- MODE PANELS ---------- */
-  .mode-panel{ display:none; padding:11px 14px; background:var(--panel2); border-bottom:1px solid var(--border); }
-  .mode-panel.active{ display:block; }
-  .field-row{ display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
-  .field-row input, .field-row select{
-    flex:1; min-width:100px; padding:9px 10px; border-radius:8px; border:1px solid var(--border);
-    background:#0f0e17; color:var(--text); font-size:14px;
-  }
-  button.btn{ padding:9px 13px; border-radius:9px; border:none; cursor:pointer; font-weight:700; font-size:12.5px; background:var(--pink); color:white; white-space:nowrap; transition:transform .1s; }
-  button.btn:active{ transform:scale(.95); }
-  button.btn.secondary{ background:#252136; border:1px solid var(--border); color:var(--text); }
-  button.btn.cyan{ background:var(--cyan); color:#00312f; }
-  button.btn:disabled{ opacity:.35; cursor:not-allowed; }
-  .hint-text{ font-size:11px; color:var(--muted); margin-top:2px; }
-  .tiktok-status-box{ margin-top:8px; font-size:12px; padding:8px 10px; border-radius:8px; background:#0f0e17; border:1px solid var(--border); }
-
-  /* ---------- HOST CONTROLS (sticky bottom) ---------- */
-  .host-controls{ position:sticky; bottom:0; z-index:58; background:#100e18; border-top:2px solid var(--pink); padding:9px 14px; box-shadow:0 -5px 14px rgba(0,0,0,.5); }
-  .host-controls h3{ margin:0 0 7px; font-size:11px; color:var(--cyan); text-transform:uppercase; letter-spacing:1px;}
-  .host-grid{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; align-items:center;}
-  .host-grid select{ padding:8px; border-radius:8px; background:#0f0e17; color:var(--text); border:1px solid var(--border); max-width:150px;}
-  .switch-wrap{ display:flex; align-items:center; gap:6px; font-size:11.5px; color:var(--muted); background:#1c1a29; padding:6px 10px; border-radius:20px; border:1px solid var(--border);}
-  .switch{ position:relative; width:34px; height:18px; }
-  .switch input{ opacity:0; width:0; height:0; }
-  .slider{ position:absolute; cursor:pointer; inset:0; background:#3a3650; border-radius:20px; transition:.2s; }
-  .slider:before{ position:absolute; content:""; height:14px; width:14px; left:2px; top:2px; background:white; border-radius:50%; transition:.2s; }
-  input:checked + .slider{ background:var(--pink); }
-  input:checked + .slider:before{ transform:translateX(16px); }
-
-  /* ---------- GAME AREA ---------- */
-  .game-area{ padding:14px; flex:1; position:relative; }
-  .puzzle-header{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; }
-  .puzzle-title{ font-size:14px; font-weight:800; color:var(--text); }
-  .puzzle-progress{ font-size:12px; color:var(--gold); font-weight:700;}
+  /* ---------- MAIN GAME AREA ---------- */
+  .game-area{ padding:14px; flex:1; }
+  .puzzle-header{ display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px; gap:8px; }
+  .puzzle-title{ font-size:14px; font-weight:800; }
+  .puzzle-progress{ font-size:12px; color:var(--gold); font-weight:700; white-space:nowrap;}
 
   .lives-row{ display:none; gap:4px; margin-bottom:8px; font-size:16px; }
   .lives-row.show{ display:flex; }
@@ -106,51 +67,44 @@
   .hints-strip{ display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
   .hint-chip{ background:#241f2e; border:1px dashed var(--cyan); color:#bdf7f4; padding:4px 10px; border-radius:20px; font-size:11px; }
 
-  .solved-stack{ display:flex; flex-direction:column; gap:6px; margin-bottom:10px; }
-  .solved-bar{
-    border-radius:10px; padding:9px 12px; color:#0a0a0a; font-weight:800;
-    animation:slideDown .4s ease; box-shadow:0 3px 10px rgba(0,0,0,.35);
-  }
-  @keyframes slideDown{ from{ transform:translateY(-14px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
-  .solved-bar .cat-name{ font-size:12px; letter-spacing:.5px; margin-bottom:3px; }
-  .solved-bar .cat-words{ font-size:13px; font-weight:700; }
-  .solved-bar .cat-contrib{ font-size:10px; font-weight:600; opacity:.75; margin-top:2px; }
-
-  .building-strip{ display:flex; gap:6px; margin-bottom:10px; }
-  .building-slot{
-    flex:1; min-height:38px; border:2px dashed var(--border); border-radius:9px;
-    display:flex; align-items:center; justify-content:center; font-size:11px; color:var(--muted);
-    background:#141220;
-  }
-  .building-slot.filled{ border-style:solid; border-color:var(--cyan); background:#132a2c; color:#c8fff8; font-weight:700; }
-
-  .board-grid{ display:grid; grid-template-columns:repeat(4, 1fr); gap:8px; }
-  .tile{
-    background:linear-gradient(160deg,#221f30,#191725); border:1px solid var(--border); border-radius:11px;
-    min-height:56px; display:flex; align-items:center; justify-content:center; text-align:center;
-    font-size:12px; font-weight:700; padding:6px; color:var(--text); word-break:break-word;
-    transition:transform .15s, box-shadow .15s; position:relative;
-  }
-  .tile.staged{
-    border-color:var(--cyan); box-shadow:0 0 0 2px rgba(37,244,238,.5), 0 0 14px rgba(37,244,238,.45);
-    animation:pulseGlow 1.1s ease-in-out infinite;
-  }
-  @keyframes pulseGlow{ 0%,100%{ box-shadow:0 0 0 2px rgba(37,244,238,.5), 0 0 10px rgba(37,244,238,.35);} 50%{ box-shadow:0 0 0 2px rgba(37,244,238,.8), 0 0 20px rgba(37,244,238,.7);} }
+  .found-list{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+  .found-chip{ padding:5px 10px; border-radius:20px; font-size:11px; font-weight:800; color:#0a0a0a; box-shadow:0 2px 6px rgba(0,0,0,.3); }
 
   .banner{
     display:none; text-align:center; background:linear-gradient(90deg,var(--pink),var(--cyan));
-    color:#0a0a0a; font-weight:800; padding:12px; border-radius:10px; margin-bottom:12px; font-size:14px;
+    color:#0a0a0a; font-weight:800; padding:11px; border-radius:10px; margin-bottom:12px; font-size:13.5px;
     animation:pop .35s ease;
   }
   @keyframes pop{ from{ transform:scale(.85); opacity:0;} to{ transform:scale(1); opacity:1;} }
 
-  /* ---------- TOASTS ---------- */
-  #toastLayer{ position:fixed; top:96px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:6px; z-index:200; pointer-events:none; }
-  .toast{
-    padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; color:#fff;
-    box-shadow:0 3px 10px rgba(0,0,0,.4); animation:toastIn .25s ease, toastOut .3s ease 1.6s forwards;
+  /* ---------- COORDINATE BOARD (chess-style) ---------- */
+  .board-wrap{ overflow-x:auto; padding-bottom:4px; }
+  .board-grid{
+    display:grid; gap:5px; width:100%; min-width:320px;
   }
-  .toast.hit{ background:#1f9d55; }
+  .axis-cell{ display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:800; color:var(--muted); }
+  .tile{
+    background:linear-gradient(160deg,#221f30,#191725); border:1px solid var(--border); border-radius:10px;
+    min-height:58px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;
+    padding:5px 3px; color:var(--text); position:relative; transition:transform .12s;
+  }
+  .tile .coord-badge{
+    position:absolute; top:3px; left:5px; font-size:8.5px; font-weight:800; color:var(--cyan); opacity:.85;
+    letter-spacing:.5px;
+  }
+  .tile .word{ font-size:11px; font-weight:700; margin-top:8px; word-break:break-word; line-height:1.15; }
+  .tile.solved{ color:#0a0a0a; animation:solvedPop .4s ease; }
+  .tile.solved .coord-badge{ color:rgba(0,0,0,.55); }
+  .tile.revealed{ opacity:.55; }
+  .tile.revealed .coord-badge{ color:rgba(0,0,0,.5); }
+  @keyframes solvedPop{ from{ transform:scale(.85); opacity:.4; } to{ transform:scale(1); opacity:1; } }
+  .tile .cat-label{ font-size:8px; font-weight:800; margin-top:2px; opacity:.8; text-transform:uppercase; }
+
+  /* ---------- TOASTS ---------- */
+  #toastLayer{ position:fixed; top:60px; left:0; right:0; display:flex; flex-direction:column; align-items:center; gap:6px; z-index:200; pointer-events:none; }
+  .toast{ padding:6px 14px; border-radius:20px; font-size:12px; font-weight:700; color:#fff; box-shadow:0 3px 10px rgba(0,0,0,.4); animation:toastIn .25s ease, toastOut .3s ease 2s forwards; }
+  .toast.solved{ background:#1f9d55; }
+  .toast.oneaway{ background:#c98a1f; }
   .toast.miss{ background:#5a5468; }
   @keyframes toastIn{ from{ transform:translateY(-8px); opacity:0;} to{ transform:translateY(0); opacity:1;} }
   @keyframes toastOut{ to{ opacity:0; transform:translateY(-8px); } }
@@ -159,24 +113,75 @@
 
   /* ---------- LEADERBOARD ---------- */
   .leaderboard{ padding:0 14px 14px; }
-  .leaderboard h3{ font-size:12.5px; color:var(--cyan); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;}
+  .leaderboard h3{ font-size:12px; color:var(--cyan); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px;}
   table.lb{ width:100%; border-collapse:collapse; background:var(--panel); border-radius:10px; overflow:hidden; }
   table.lb th, table.lb td{ padding:8px 10px; font-size:12.5px; text-align:left; border-bottom:1px solid var(--border); }
-  table.lb th{ color:var(--muted); font-size:10.5px; text-transform:uppercase;}
+  table.lb th{ color:var(--muted); font-size:10px; text-transform:uppercase;}
   table.lb tr:last-child td{ border-bottom:none; }
   .rank1{ color:var(--gold); font-weight:800;}
-  .avatar{ display:inline-flex; width:20px;height:20px;border-radius:50%; background:linear-gradient(135deg,var(--pink),var(--cyan)); color:#0a0a0a; font-size:10px; font-weight:800; align-items:center; justify-content:center; margin-right:6px; }
+  .avatar{ display:inline-flex; width:19px;height:19px;border-radius:50%; background:linear-gradient(135deg,var(--pink),var(--cyan)); color:#0a0a0a; font-size:9.5px; font-weight:800; align-items:center; justify-content:center; margin-right:6px; }
 
-  /* ---------- DIAGNOSTICS FOOTER ---------- */
-  .diagnostics-bar{ position:sticky; bottom:0; z-index:57; background:#000; color:#8ef58a; font-family:monospace; font-size:10px; padding:6px 10px; border-top:1px solid #123; display:flex; flex-wrap:wrap; gap:10px; }
-  .diagnostics-bar b{ color:#fff; }
+  /* ---------- SETTINGS DRAWER (host-only, bottom sheet) ---------- */
+  #settingsBackdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:300;
+    opacity:0; pointer-events:none; transition:opacity .2s;
+  }
+  #settingsBackdrop.open{ opacity:1; pointer-events:auto; }
+  #settingsDrawer{
+    position:fixed; left:0; right:0; bottom:0; z-index:301; max-width:520px; margin:0 auto;
+    background:var(--panel); border-radius:16px 16px 0 0; max-height:88vh; overflow-y:auto;
+    transform:translateY(100%); transition:transform .25s ease; box-shadow:0 -8px 30px rgba(0,0,0,.6);
+    border-top:1px solid var(--border);
+  }
+  #settingsDrawer.open{ transform:translateY(0); }
+  .drawer-handle{ width:40px; height:4px; background:#3a3650; border-radius:4px; margin:10px auto 4px; }
+  .drawer-header{ display:flex; align-items:center; justify-content:space-between; padding:6px 16px 10px; border-bottom:1px solid var(--border); }
+  .drawer-header h2{ font-size:15px; margin:0; }
+  .drawer-close{ width:30px;height:30px;border-radius:8px; background:#252136; border:1px solid var(--border); color:var(--text); font-size:14px; cursor:pointer; }
+  .drawer-body{ padding:8px 16px 24px; }
+
+  details.settings-section{ border-bottom:1px solid var(--border); padding:10px 0; }
+  details.settings-section summary{
+    list-style:none; cursor:pointer; font-size:12.5px; font-weight:800; color:var(--cyan);
+    text-transform:uppercase; letter-spacing:.6px; display:flex; align-items:center; justify-content:space-between;
+  }
+  details.settings-section summary::-webkit-details-marker{ display:none; }
+  details.settings-section summary:after{ content:'▾'; color:var(--muted); transition:transform .2s; }
+  details.settings-section[open] summary:after{ transform:rotate(180deg); }
+  .settings-content{ padding-top:10px; }
+
+  .field-row{ display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap; }
+  .field-row input, .field-row select{
+    flex:1; min-width:100px; padding:9px 10px; border-radius:8px; border:1px solid var(--border);
+    background:#0f0e17; color:var(--text); font-size:14px;
+  }
+  label.field-label{ display:block; font-size:10.5px; color:var(--muted); margin-bottom:4px; text-transform:uppercase; letter-spacing:.4px; }
+
+  button.btn{ padding:9px 13px; border-radius:9px; border:none; cursor:pointer; font-weight:700; font-size:12.5px; background:var(--pink); color:white; white-space:nowrap; transition:transform .1s; }
+  button.btn:active{ transform:scale(.95); }
+  button.btn.secondary{ background:#252136; border:1px solid var(--border); color:var(--text); }
+  button.btn.cyan{ background:var(--cyan); color:#00312f; }
+  button.btn.block{ width:100%; }
+  button.btn:disabled{ opacity:.35; cursor:not-allowed; }
+  .hint-text{ font-size:11px; color:var(--muted); margin-top:2px; }
+  .status-box{ margin-top:8px; font-size:12px; padding:8px 10px; border-radius:8px; background:#0f0e17; border:1px solid var(--border); }
+
+  .switch-wrap{ display:flex; align-items:center; justify-content:space-between; gap:10px; font-size:12.5px; color:var(--text); background:#1c1a29; padding:9px 12px; border-radius:10px; border:1px solid var(--border); margin-bottom:8px;}
+  .switch-wrap .desc{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+  .switch{ position:relative; width:38px; height:20px; flex-shrink:0; }
+  .switch input{ opacity:0; width:0; height:0; }
+  .slider{ position:absolute; cursor:pointer; inset:0; background:#3a3650; border-radius:20px; transition:.2s; }
+  .slider:before{ position:absolute; content:""; height:16px; width:16px; left:2px; top:2px; background:white; border-radius:50%; transition:.2s; }
+  input:checked + .slider{ background:var(--pink); }
+  input:checked + .slider:before{ transform:translateX(18px); }
+
+  .btn-grid{ display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+
+  .diag-grid{ display:flex; flex-direction:column; gap:6px; font-family:monospace; font-size:11px; color:#8ef58a; background:#000; padding:10px; border-radius:8px; }
+  .diag-grid b{ color:#fff; }
 
   ::-webkit-scrollbar{ height:6px; width:6px; }
   ::-webkit-scrollbar-thumb{ background:#333; border-radius:4px; }
-
-  @media (min-width:520px){
-    .board-grid{ grid-template-columns:repeat(6,1fr); }
-  }
 </style>
 </head>
 <body>
@@ -188,81 +193,22 @@
   <header>
     <div class="brand">
       <div class="logo">🧩</div>
-      <h1>CATEGORY CONNECT <span style="color:var(--cyan)">LIVE</span><small>find the hidden groups together</small></h1>
+      <h1>CATEGORY CONNECT <span style="color:var(--cyan)">LIVE</span><small>find the hidden groups</small></h1>
     </div>
-    <div class="conn-pill"><span id="serverDot" class="status-dot"></span><span id="serverStatusText">connecting…</span></div>
+    <div class="header-right">
+      <div class="conn-pill"><span id="serverDot" class="status-dot"></span><span id="serverStatusText">…</span></div>
+      <button id="settingsBtn" title="Host Settings">⚙️</button>
+    </div>
   </header>
-
-  <div class="tabs">
-    <button data-mode="live" class="active">📡 Live Mode</button>
-    <button data-mode="test">🧪 Test Mode</button>
-    <button data-mode="offline">🎮 Offline Mode</button>
-  </div>
 
   <div class="legend" id="legendBox">
     <button class="legend-toggle" id="legendToggle">hide</button>
     <div id="legendBody">
-      <b>HOW TO PLAY:</b> There are <b id="legendGroupCount">4</b> hidden groups of 4 words on the board.
-      Type <b>one word you see</b> into chat — like <code>TESLA</code> — to try adding it to the group being built.
-      If it fits, it joins! Get all 4 right and the group locks in with its category revealed. Play together —
-      everyone can contribute words to the same group!
-    </div>
-  </div>
-
-  <!-- LIVE MODE PANEL -->
-  <div class="mode-panel active" id="panel-live">
-    <div class="field-row">
-      <input id="liveUsername" type="text" placeholder="TikTok username (no @), e.g. yourchannel" />
-    </div>
-    <div class="field-row">
-      <input id="liveSignKey" type="text" placeholder="Signing API key (e.g. from eulerstream.com)" />
-    </div>
-    <div class="field-row">
-      <button class="btn" id="connectBtn">Connect to TikTok LIVE</button>
-      <button class="btn secondary" id="disconnectBtn">Disconnect</button>
-    </div>
-    <div class="hint-text">A signing key is required — get a free one at eulerstream.com.</div>
-    <div class="tiktok-status-box" id="tiktokStatusBox">Not connected.</div>
-  </div>
-
-  <!-- TEST MODE PANEL -->
-  <div class="mode-panel" id="panel-test">
-    <div class="field-row">
-      <button class="btn cyan" id="simRandomBtn">🎲 Simulate Random Fake Chat</button>
-      <button class="btn secondary" id="simAutoBtn">▶ Auto-Simulate: OFF</button>
-    </div>
-    <div class="field-row">
-      <input id="testUser" type="text" placeholder="Fake username" value="viewer123" />
-      <input id="testMsg" type="text" placeholder="Fake message, e.g. TESLA" />
-      <button class="btn" id="testSendBtn">Send</button>
-    </div>
-    <div class="hint-text">Simulated guesses pick real words currently on the board, so you can test hits and misses.</div>
-  </div>
-
-  <!-- OFFLINE MODE PANEL -->
-  <div class="mode-panel" id="panel-offline">
-    <div class="field-row">
-      <input id="offlineUser" type="text" placeholder="Your name" value="You" />
-      <input id="offlineMsg" type="text" placeholder="Your guess, e.g. TESLA" />
-      <button class="btn" id="offlineSendBtn">Submit Guess</button>
-    </div>
-    <div class="hint-text">Play solo — type words from the board here, no audience needed.</div>
-  </div>
-
-  <!-- HOST CONTROLS -->
-  <div class="host-controls">
-    <h3>Host Controls</h3>
-    <div class="host-grid">
-      <select id="puzzleSelect"><option value="random">🎲 Random Puzzle</option></select>
-      <button class="btn" id="newPuzzleBtn">🆕 New Puzzle</button>
-      <button class="btn secondary" id="hintBtn">💡 Hint</button>
-      <button class="btn secondary" id="clearSelBtn">↩ Clear Selection</button>
-      <button class="btn secondary" id="endPuzzleBtn">🏁 Reveal All</button>
-      <label class="switch-wrap"><span class="switch"><input type="checkbox" id="strictToggle"/><span class="slider"></span></span>Strict (4 lives)</label>
-    </div>
-    <div class="field-row" style="margin-bottom:0;">
-      <input id="hostInject" type="text" placeholder="Type as chat / manual comment, e.g. TESLA" />
-      <button class="btn" id="hostInjectBtn">Send</button>
+      <b>HOW TO ANSWER:</b> Every box has a chess-style coordinate (column + row), like <code>B3</code>.
+      There are <b id="legendGroupCount">4</b> hidden groups of 4 boxes that share a secret theme.
+      To claim a group, type <b>all 4 coordinates in ONE comment</b> — e.g. <code>A1 B2 C3 D4</code>.
+      Only a single message with all 4 correct wins the points, so team up in chat to figure it out, but
+      one sharp-eyed viewer has to lock in the final answer!
     </div>
   </div>
 
@@ -276,12 +222,11 @@
 
     <div class="lives-row" id="livesRow"></div>
     <div class="hints-strip" id="hintsStrip"></div>
+    <div class="found-list" id="foundList"></div>
 
-    <div class="solved-stack" id="solvedStack"></div>
-
-    <div class="building-strip" id="buildingStrip"></div>
-
-    <div class="board-grid" id="boardGrid"></div>
+    <div class="board-wrap">
+      <div class="board-grid" id="boardGrid"></div>
+    </div>
   </div>
 
   <div class="leaderboard">
@@ -292,12 +237,89 @@
     </table>
   </div>
 
-  <div class="diagnostics-bar">
-    <span>EVENTS: <b id="diagEvents">0</b></span>
-    <span>LAST: <b id="diagLast">—</b></span>
-    <span>TIKTOK: <b id="diagTiktok">disconnected</b></span>
-  </div>
+</div>
 
+<!-- ================= HOST SETTINGS DRAWER ================= -->
+<div id="settingsBackdrop"></div>
+<div id="settingsDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <h2>⚙️ Host Settings</h2>
+    <button class="drawer-close" id="closeSettingsBtn">✕</button>
+  </div>
+  <div class="drawer-body">
+
+    <details class="settings-section" open>
+      <summary>📡 TikTok Live Connection</summary>
+      <div class="settings-content">
+        <label class="field-label">TikTok username (no @)</label>
+        <div class="field-row"><input id="liveUsername" type="text" placeholder="yourchannel" /></div>
+        <label class="field-label">Signing API key (eulerstream.com)</label>
+        <div class="field-row"><input id="liveSignKey" type="text" placeholder="Paste your key here" /></div>
+        <div class="btn-grid">
+          <button class="btn block" id="connectBtn">Connect</button>
+          <button class="btn secondary block" id="disconnectBtn">Disconnect</button>
+        </div>
+        <div class="status-box" id="tiktokStatusBox">Not connected.</div>
+      </div>
+    </details>
+
+    <details class="settings-section" open>
+      <summary>🧩 Puzzle Controls</summary>
+      <div class="settings-content">
+        <label class="field-label">Choose a puzzle</label>
+        <div class="field-row"><select id="puzzleSelect"><option value="random">🎲 Random Puzzle</option></select></div>
+        <div class="btn-grid">
+          <button class="btn block" id="newPuzzleBtn">🆕 New Puzzle</button>
+          <button class="btn secondary block" id="hintBtn">💡 Reveal Hint</button>
+        </div>
+        <button class="btn secondary block" id="endPuzzleBtn">🏁 Reveal All Answers</button>
+      </div>
+    </details>
+
+    <details class="settings-section">
+      <summary>🎚️ Difficulty</summary>
+      <div class="settings-content">
+        <div class="switch-wrap">
+          <div>
+            Strict Mode (4 lives)
+            <div class="desc">A wrong 4-coordinate attempt costs a life. 4 wrong attempts ends the puzzle. Leave OFF for a relaxed, always-flowing stream.</div>
+          </div>
+          <span class="switch"><input type="checkbox" id="strictToggle"/><span class="slider"></span></span>
+        </div>
+      </div>
+    </details>
+
+    <details class="settings-section">
+      <summary>🧪 Manual Composer &amp; Testing</summary>
+      <div class="settings-content">
+        <div class="hint-text" style="margin-bottom:8px;">Use this to test the game, play offline solo, or seed chat yourself during a broadcast.</div>
+        <label class="field-label">Name</label>
+        <div class="field-row"><input id="composerUser" type="text" value="You" /></div>
+        <label class="field-label">Message (e.g. A1 B2 C3 D4)</label>
+        <div class="field-row">
+          <input id="composerMsg" type="text" placeholder="Type coordinates or any chat text" />
+          <button class="btn" id="composerSendBtn">Send</button>
+        </div>
+        <div class="btn-grid">
+          <button class="btn cyan block" id="simRandomBtn">🎲 Simulate Random Attempt</button>
+          <button class="btn secondary block" id="simAutoBtn">▶ Auto-Sim: OFF</button>
+        </div>
+      </div>
+    </details>
+
+    <details class="settings-section">
+      <summary>📊 Diagnostics</summary>
+      <div class="settings-content">
+        <div class="diag-grid">
+          <span>RAW EVENTS: <b id="diagEvents">0</b></span>
+          <span>LAST RECEIVED: <b id="diagLast">—</b></span>
+          <span>TIKTOK STATUS: <b id="diagTiktok">disconnected</b></span>
+        </div>
+      </div>
+    </details>
+
+  </div>
 </div>
 
 <script src="/socket.io/socket.io.js"></script>
@@ -318,20 +340,19 @@
   const socket = io();
   const serverDot = document.getElementById('serverDot');
   const serverStatusText = document.getElementById('serverStatusText');
-  socket.on('connect', () => { serverDot.className = 'status-dot on'; serverStatusText.textContent = 'server connected'; });
-  socket.on('disconnect', () => { serverDot.className = 'status-dot err'; serverStatusText.textContent = 'server disconnected'; });
+  socket.on('connect', () => { serverDot.className = 'status-dot on'; serverStatusText.textContent = 'online'; });
+  socket.on('disconnect', () => { serverDot.className = 'status-dot err'; serverStatusText.textContent = 'offline'; });
 
-  let latestGame = null; // cached for Test Mode "simulate" to pick real board words
+  let latestGame = null;
 
-  // ---------------- MODE TABS ----------------
-  document.querySelectorAll('.tabs button').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.tabs button').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      document.querySelectorAll('.mode-panel').forEach(p => p.classList.remove('active'));
-      document.getElementById('panel-' + btn.dataset.mode).classList.add('active');
-    });
-  });
+  // ---------------- SETTINGS DRAWER ----------------
+  const drawer = document.getElementById('settingsDrawer');
+  const backdrop = document.getElementById('settingsBackdrop');
+  function openDrawer(){ drawer.classList.add('open'); backdrop.classList.add('open'); }
+  function closeDrawer(){ drawer.classList.remove('open'); backdrop.classList.remove('open'); }
+  document.getElementById('settingsBtn').addEventListener('click', openDrawer);
+  document.getElementById('closeSettingsBtn').addEventListener('click', closeDrawer);
+  backdrop.addEventListener('click', closeDrawer);
 
   // ---------------- LEGEND TOGGLE ----------------
   document.getElementById('legendToggle').addEventListener('click', () => {
@@ -367,7 +388,6 @@
     document.getElementById('puzzleTitle').textContent = g.puzzleTitle || 'Puzzle';
     document.getElementById('puzzleProgress').textContent = g.solved.length + '/' + g.totalGroups + ' groups found';
 
-    // lives
     const livesRow = document.getElementById('livesRow');
     if (g.strictMode){
       livesRow.classList.add('show');
@@ -378,59 +398,68 @@
       livesRow.innerHTML = '';
     }
 
-    // hints
-    const hintsStrip = document.getElementById('hintsStrip');
-    hintsStrip.innerHTML = g.hints.length
+    document.getElementById('hintsStrip').innerHTML = g.hints.length
       ? g.hints.map(h => '<span class="hint-chip">💡 One group is: ' + escapeHtml(h) + '</span>').join('')
       : '';
 
-    // solved stack
-    const solvedStack = document.getElementById('solvedStack');
-    solvedStack.innerHTML = g.solved.map(s =>
-      '<div class="solved-bar" style="background:' + s.color + '">' +
-        '<div class="cat-name">' + escapeHtml(s.name) + '</div>' +
-        '<div class="cat-words">' + s.words.map(escapeHtml).join(' • ') + '</div>' +
-        '<div class="cat-contrib">found by ' + s.contributors.map(escapeHtml).join(', ') + '</div>' +
-      '</div>'
+    document.getElementById('foundList').innerHTML = g.solved.map(s =>
+      '<span class="found-chip" style="background:' + s.color + '">' + escapeHtml(s.name) + ' — ' + escapeHtml(s.contributor) + '</span>'
     ).join('');
 
-    // building strip (current staging, up to 4 slots)
-    const buildingStrip = document.getElementById('buildingStrip');
-    buildingStrip.innerHTML = '';
-    for (let i=0;i<4;i++){
-      const slot = document.createElement('div');
-      const item = g.staging[i];
-      if (item){
-        slot.className = 'building-slot filled';
-        slot.textContent = item.word;
-      } else {
-        slot.className = 'building-slot';
-        slot.textContent = g.staging.length === 0 && i === 0 ? 'Waiting for first word…' : '?';
+    // board grid: cols fixed, rows = totalRows
+    const cols = g.cols || ['A','B','C','D'];
+    const rows = g.totalRows || Math.ceil(g.tiles.length / cols.length);
+    const boardGrid = document.getElementById('boardGrid');
+    boardGrid.style.gridTemplateColumns = '24px repeat(' + cols.length + ', 1fr)';
+    boardGrid.innerHTML = '';
+
+    // header row
+    const corner = document.createElement('div');
+    boardGrid.appendChild(corner);
+    cols.forEach(c => {
+      const el = document.createElement('div');
+      el.className = 'axis-cell';
+      el.textContent = c;
+      boardGrid.appendChild(el);
+    });
+
+    for (let r = 1; r <= rows; r++){
+      const rowLabel = document.createElement('div');
+      rowLabel.className = 'axis-cell';
+      rowLabel.textContent = r;
+      boardGrid.appendChild(rowLabel);
+      for (let ci = 0; ci < cols.length; ci++){
+        const coord = cols[ci] + r;
+        const tile = g.tiles.find(t => t.coord === coord);
+        const div = document.createElement('div');
+        if (tile){
+          div.className = 'tile' + (tile.status === 'solved' ? ' solved' : tile.status === 'revealed' ? ' revealed' : '');
+          if (tile.status === 'solved' || tile.status === 'revealed'){
+            div.style.background = tile.categoryColor;
+          }
+          div.innerHTML = '<span class="coord-badge">' + coord + '</span>' +
+            '<span class="word">' + escapeHtml(tile.word) + '</span>' +
+            ((tile.status === 'solved' || tile.status === 'revealed') ? '<span class="cat-label">' + escapeHtml(tile.categoryName) + '</span>' : '');
+        } else {
+          div.className = 'tile';
+          div.style.opacity = '0.15';
+        }
+        boardGrid.appendChild(div);
       }
-      buildingStrip.appendChild(slot);
     }
 
-    // tile grid (unsolved words only; staged ones glow)
-    const boardGrid = document.getElementById('boardGrid');
-    boardGrid.innerHTML = g.tiles.map(t =>
-      '<div class="tile' + (t.staged ? ' staged' : '') + '">' + escapeHtml(t.word) + '</div>'
-    ).join('');
-
-    // banner (puzzle finished/failed handled via dedicated events, but keep
-    // an "inactive with tiles remaining" fallback message just in case)
     const banner = document.getElementById('banner');
-    if (!g.active && g.tiles.length > 0 && g.solved.length < g.totalGroups){
+    if (!g.active && g.solved.length === g.totalGroups && g.totalGroups > 0){
       banner.style.display = 'block';
-      banner.textContent = '⏸ Puzzle paused. Start a new one from Host Controls.';
-    } else if (!g.active && g.solved.length === g.totalGroups && g.totalGroups > 0){
+      banner.textContent = '🎉 Puzzle complete! Great job everyone.';
+    } else if (!g.active && g.solved.length < g.totalGroups){
       banner.style.display = 'block';
-      banner.textContent = '🎉 Puzzle complete! Great teamwork.';
+      banner.textContent = '🏁 Round ended — answers revealed. Start a new puzzle from Settings.';
     } else {
       banner.style.display = 'none';
     }
 
     document.getElementById('hintBtn').disabled = !g.active;
-    document.getElementById('clearSelBtn').disabled = !g.active;
     document.getElementById('strictToggle').checked = !!g.strictMode;
   }
 
@@ -461,13 +490,13 @@
   }
 
   // ---------------- TOASTS ----------------
-  function showToast(kind, username, word){
+  function showToast(kind, text){
     const layer = document.getElementById('toastLayer');
     const el = document.createElement('div');
     el.className = 'toast ' + kind;
-    el.textContent = kind === 'hit' ? ('✅ ' + username + ' added "' + word + '"') : ('❌ ' + username + ': "' + word + '" doesn\'t fit yet');
+    el.textContent = text;
     layer.appendChild(el);
-    setTimeout(() => el.remove(), 2000);
+    setTimeout(() => el.remove(), 2300);
   }
 
   // ---------------- CONFETTI ----------------
@@ -481,14 +510,10 @@
   const CONFETTI_COLORS = ['#fe2c55','#25f4ee','#f5c518','#2ecc71','#b06bff','#ff9a3c'];
   function launchConfetti(){
     confettiParticles = Array.from({length:120}).map(() => ({
-      x: Math.random()*confettiCanvas.width,
-      y: -20 - Math.random()*200,
-      vx: (Math.random()-0.5)*3,
-      vy: 2 + Math.random()*3,
-      size: 4 + Math.random()*5,
-      color: CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)],
-      rot: Math.random()*360,
-      vr: (Math.random()-0.5)*10
+      x: Math.random()*confettiCanvas.width, y: -20 - Math.random()*200,
+      vx: (Math.random()-0.5)*3, vy: 2 + Math.random()*3,
+      size: 4 + Math.random()*5, color: CONFETTI_COLORS[Math.floor(Math.random()*CONFETTI_COLORS.length)],
+      rot: Math.random()*360, vr: (Math.random()-0.5)*10
     }));
     confettiCanvas.style.display = 'block';
     if (!confettiRunning){ confettiRunning = true; requestAnimationFrame(tickConfetti); }
@@ -498,16 +523,11 @@
     ctx.clearRect(0,0,confettiCanvas.width, confettiCanvas.height);
     confettiParticles.forEach(p => {
       p.x += p.vx; p.y += p.vy; p.rot += p.vr;
-      ctx.save();
-      ctx.translate(p.x, p.y);
-      ctx.rotate(p.rot * Math.PI/180);
-      ctx.fillStyle = p.color;
-      ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
-      ctx.restore();
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot * Math.PI/180);
+      ctx.fillStyle = p.color; ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size); ctx.restore();
     });
     confettiParticles = confettiParticles.filter(p => p.y < confettiCanvas.height + 30);
-    if (confettiParticles.length > 0){ requestAnimationFrame(tickConfetti); }
-    else { confettiRunning = false; }
+    if (confettiParticles.length > 0){ requestAnimationFrame(tickConfetti); } else { confettiRunning = false; }
   }
 
   // ---------------- SOCKET EVENT WIRING ----------------
@@ -522,35 +542,13 @@
   socket.on('leaderboard:update', renderLeaderboard);
   socket.on('diagnostics:update', renderDiagnostics);
   socket.on('tiktok:status', renderTikTokStatus);
-  socket.on('guess:hit', (d) => showToast('hit', d.username, d.word));
-  socket.on('guess:miss', (d) => showToast('miss', d.username, d.word));
-  socket.on('category:solved', (d) => { launchConfetti(); });
+  socket.on('category:solved', (d) => { launchConfetti(); showToast('solved', '🎉 ' + d.contributor + ' solved ' + d.name + '! +100 pts'); });
+  socket.on('guess:oneaway', (d) => showToast('oneaway', '🔥 ' + d.username + ' is one away!'));
+  socket.on('guess:miss', (d) => showToast('miss', (d.username || 'someone') + '\'s guess didn\'t match'));
   socket.on('puzzle:complete', () => { launchConfetti(); setTimeout(launchConfetti, 500); });
-  socket.on('puzzle:failed', () => {
-    const banner = document.getElementById('banner');
-    banner.style.display = 'block';
-    banner.textContent = '💔 Out of lives! Start a new puzzle from Host Controls.';
-  });
+  socket.on('puzzle:failed', () => showToast('miss', '💔 Out of lives! Start a new puzzle from Settings.'));
 
-  // ---------------- HOST CONTROL BUTTONS ----------------
-  document.getElementById('newPuzzleBtn').addEventListener('click', () => {
-    socket.emit('host:newPuzzle', { puzzleId: puzzleSelect.value === 'random' ? 'random' : Number(puzzleSelect.value) });
-  });
-  document.getElementById('hintBtn').addEventListener('click', () => socket.emit('host:revealHint'));
-  document.getElementById('clearSelBtn').addEventListener('click', () => socket.emit('host:clearSelection'));
-  document.getElementById('endPuzzleBtn').addEventListener('click', () => socket.emit('host:endPuzzle'));
-  document.getElementById('strictToggle').addEventListener('change', (e) => {
-    socket.emit('host:toggleStrictMode', { enabled: e.target.checked });
-  });
-  document.getElementById('hostInjectBtn').addEventListener('click', () => {
-    const input = document.getElementById('hostInject');
-    if (!input.value.trim()) return;
-    socket.emit('chat:inject', { username: 'Host', text: input.value });
-    input.value = '';
-  });
-  document.getElementById('hostInject').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('hostInjectBtn').click(); });
-
-  // ---------------- LIVE MODE ----------------
+  // ---------------- SETTINGS: TikTok ----------------
   document.getElementById('connectBtn').addEventListener('click', () => {
     socket.emit('host:connectTikTok', {
       username: document.getElementById('liveUsername').value,
@@ -559,50 +557,56 @@
   });
   document.getElementById('disconnectBtn').addEventListener('click', () => socket.emit('host:disconnectTikTok'));
 
-  // ---------------- TEST MODE ----------------
+  // ---------------- SETTINGS: Puzzle Controls ----------------
+  document.getElementById('newPuzzleBtn').addEventListener('click', () => {
+    socket.emit('host:newPuzzle', { puzzleId: puzzleSelect.value === 'random' ? 'random' : Number(puzzleSelect.value) });
+  });
+  document.getElementById('hintBtn').addEventListener('click', () => socket.emit('host:revealHint'));
+  document.getElementById('endPuzzleBtn').addEventListener('click', () => socket.emit('host:endPuzzle'));
+
+  // ---------------- SETTINGS: Difficulty ----------------
+  document.getElementById('strictToggle').addEventListener('change', (e) => {
+    socket.emit('host:toggleStrictMode', { enabled: e.target.checked });
+  });
+
+  // ---------------- SETTINGS: Manual Composer & Testing ----------------
+  document.getElementById('composerSendBtn').addEventListener('click', () => {
+    const user = document.getElementById('composerUser').value || 'You';
+    const msg = document.getElementById('composerMsg').value;
+    if (!msg.trim()) return;
+    socket.emit('chat:inject', { username: user, text: msg });
+    document.getElementById('composerMsg').value = '';
+  });
+  document.getElementById('composerMsg').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('composerSendBtn').click(); });
+
   const FAKE_USERS = ["dance_queen22","tiktoker_max","liveFanatic","xoxo_sara","viewer_bob","gamer_gigi","chattycathy","user_888"];
-  function pickBoardWord(){
-    if (!latestGame || !latestGame.tiles || latestGame.tiles.length === 0) return null;
-    const pool = latestGame.tiles;
-    return pool[Math.floor(Math.random()*pool.length)].word;
+  function pickRandomAttempt(){
+    if (!latestGame) return null;
+    const unsolved = latestGame.tiles.filter(t => t.status === 'unsolved');
+    if (unsolved.length < 4) return null;
+    const shuffled = unsolved.slice().sort(() => Math.random() - 0.5);
+    return shuffled.slice(0,4).map(t => t.coord).join(' ');
   }
   document.getElementById('simRandomBtn').addEventListener('click', () => {
-    const word = pickBoardWord();
-    if (!word) return;
+    const attempt = pickRandomAttempt();
+    if (!attempt) return;
     const user = FAKE_USERS[Math.floor(Math.random()*FAKE_USERS.length)];
-    socket.emit('chat:inject', { username: user, text: word });
+    socket.emit('chat:inject', { username: user, text: attempt });
   });
   let autoSimTimer = null;
   document.getElementById('simAutoBtn').addEventListener('click', (e) => {
     if (autoSimTimer){
-      clearInterval(autoSimTimer); autoSimTimer = null; e.target.textContent = '▶ Auto-Simulate: OFF';
+      clearInterval(autoSimTimer); autoSimTimer = null; e.target.textContent = '▶ Auto-Sim: OFF';
     } else {
       autoSimTimer = setInterval(() => {
-        const word = pickBoardWord();
-        if (!word) return;
+        const attempt = pickRandomAttempt();
+        if (!attempt) return;
         const user = FAKE_USERS[Math.floor(Math.random()*FAKE_USERS.length)];
-        socket.emit('chat:inject', { username: user, text: word });
-      }, 3000);
-      e.target.textContent = '⏸ Auto-Simulate: ON';
+        socket.emit('chat:inject', { username: user, text: attempt });
+      }, 2500);
+      e.target.textContent = '⏸ Auto-Sim: ON';
     }
   });
-  document.getElementById('testSendBtn').addEventListener('click', () => {
-    const user = document.getElementById('testUser').value || 'viewer';
-    const msg = document.getElementById('testMsg').value;
-    if (!msg.trim()) return;
-    socket.emit('chat:inject', { username: user, text: msg });
-    document.getElementById('testMsg').value = '';
-  });
-
-  // ---------------- OFFLINE MODE ----------------
-  document.getElementById('offlineSendBtn').addEventListener('click', () => {
-    const user = document.getElementById('offlineUser').value || 'You';
-    const msg = document.getElementById('offlineMsg').value;
-    if (!msg.trim()) return;
-    socket.emit('chat:inject', { username: user, text: msg });
-    document.getElementById('offlineMsg').value = '';
-  });
-  document.getElementById('offlineMsg').addEventListener('keydown', (e) => { if (e.key === 'Enter') document.getElementById('offlineSendBtn').click(); });
 
 })();
 </script>

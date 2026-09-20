@@ -4,10 +4,16 @@
 // hidden category) styled after popular "word association match" games,
 // driven entirely by TikTok LIVE chat comments.
 //
+// ANSWER MECHANISM: every tile on the board has a chess-style coordinate
+// (column letter A-D + row number, e.g. "B3"). To claim a category, ONE
+// viewer must type all 4 correct coordinates in a SINGLE chat message
+// (e.g. "A1 B2 C3 D4"). This keeps answering fast and unambiguous for a
+// live chat, and rewards the one viewer who actually solved it.
+//
 // Handles: Express static hosting, Socket.io realtime bridge to the browser,
 // the TikTok LIVE connection (with retries + bulletproof parsing), the game
-// state machine (puzzles, staging, scoring, hints), and a simple JSON
-// leaderboard file so scores survive a normal server restart.
+// state machine (puzzles, scoring, hints), and a simple JSON leaderboard
+// file so scores survive a normal server restart.
 
 import express from "express";
 import http from "http";
@@ -42,16 +48,20 @@ const PORT = process.env.PORT || 3000;
 // ---------------------------------------------------------------------------
 // 1. GAME STATE
 // ---------------------------------------------------------------------------
-// game.tiles: one entry per word in the active puzzle:
-//   { word, categoryIndex, status: 'unsolved' | 'staged' | 'solved' }
-// game.staging: { categoryIndex: number|null, words: [{word, username}] }
-// game.solved: [{ name, color, words: [word,...], contributors: [username,...] }]
-// game.hintedCategoryIndexes: categories whose NAME has been revealed as a hint
-//   before being solved (but the words are not revealed).
+// Board is always 4 columns wide (A, B, C, D). Rows scale with puzzle size:
+// a 4-category puzzle (16 words) -> rows 1-4. A 6-category puzzle (24 words)
+// -> rows 1-6. Every tile's coordinate is fixed for the life of the puzzle,
+// exactly like a chessboard square never moves.
+const COLS = ["A", "B", "C", "D"];
+
+// game.tiles: one entry per word in the active puzzle, in fixed row-major
+// order (index 0 = A1, index 1 = B1, index 2 = C1, index 3 = D1, index 4 =
+// A2, ...):
+//   { word, coord, categoryIndex, status: 'unsolved' | 'solved' | 'revealed' }
+// game.solved: recap list [{ name, color, contributor }] in the order solved.
 const game = {
-  puzzle: null,        // full puzzle object currently loaded (server-only, has answers)
+  puzzle: null,
   tiles: [],
-  staging: { categoryIndex: null, words: [] },
   solved: [],
   hintedCategoryIndexes: [],
   strictMode: false,
@@ -62,7 +72,6 @@ const game = {
 };
 
 const diagnostics = { rawEventCount: 0, lastUser: "", lastText: "" };
-
 const tiktok = { status: "disconnected", message: "Not connected", username: null };
 
 let scores = {}; // { username: { score, wins } }
@@ -85,11 +94,8 @@ function loadLeaderboard() {
   }
 }
 function saveLeaderboard() {
-  try {
-    fs.writeFileSync(LEADERBOARD_PATH, JSON.stringify(scores, null, 2));
-  } catch (err) {
-    console.error("[leaderboard] Failed to save:", err?.message);
-  }
+  try { fs.writeFileSync(LEADERBOARD_PATH, JSON.stringify(scores, null, 2)); }
+  catch (err) { console.error("[leaderboard] Failed to save:", err?.message); }
 }
 loadLeaderboard();
 
@@ -124,18 +130,24 @@ function shuffle(arr) {
 }
 
 function publicGameView() {
-  // Never leak categoryIndex of unsolved/staged tiles -- that's the answer!
   return {
     puzzleTitle: game.puzzle ? game.puzzle.title : null,
     totalGroups: game.puzzle ? game.puzzle.categories.length : 0,
+    totalRows: game.puzzle ? game.puzzle.categories.length : 0,
+    cols: COLS,
     active: game.active,
     strictMode: game.strictMode,
     mistakes: game.mistakes,
     maxMistakes: game.maxMistakes,
-    tiles: game.tiles
-      .filter(t => t.status !== "solved")
-      .map(t => ({ word: t.word, staged: t.status === "staged" })),
-    staging: game.staging.words.map(w => ({ word: w.word, username: w.username })),
+    tiles: game.tiles.map(t => {
+      const base = { coord: t.coord, word: t.word, status: t.status };
+      if (t.status === "solved" || t.status === "revealed") {
+        const cat = game.puzzle.categories[t.categoryIndex];
+        base.categoryName = cat.name;
+        base.categoryColor = cat.color;
+      }
+      return base;
+    }),
     solved: game.solved,
     hints: game.hintedCategoryIndexes.map(i => game.puzzle.categories[i].name)
   };
@@ -174,34 +186,29 @@ function loadPuzzle(puzzleId) {
     puzzle = getPuzzleById(puzzleId) || getRandomPuzzle();
   }
 
-  const tiles = [];
+  const rawTiles = [];
   puzzle.categories.forEach((cat, ci) => {
-    cat.words.forEach(w => {
-      tiles.push({ word: w, categoryIndex: ci, status: "unsolved" });
-    });
+    cat.words.forEach(w => rawTiles.push({ word: w, categoryIndex: ci }));
+  });
+  const shuffled = shuffle(rawTiles);
+  shuffled.forEach((t, i) => {
+    const row = Math.floor(i / COLS.length) + 1;
+    const col = COLS[i % COLS.length];
+    t.coord = `${col}${row}`;
+    t.status = "unsolved";
   });
 
   game.puzzle = puzzle;
-  game.tiles = shuffle(tiles);
-  game.staging = { categoryIndex: null, words: [] };
+  game.tiles = shuffled;
   game.solved = [];
   game.hintedCategoryIndexes = [];
   game.mistakes = 0;
   game.active = true;
   game.startedAt = Date.now();
 
-  console.log(`[puzzle] Loaded "${puzzle.title}" (${puzzle.categories.length} groups). Answers (server-only):`,
-    puzzle.categories.map(c => `${c.name}=[${c.words.join(",")}]`).join(" | "));
+  console.log(`[puzzle] Loaded "${puzzle.title}" (${puzzle.categories.length} groups, board ${COLS.length}x${puzzle.categories.length}). Answers (server-only):`,
+    puzzle.categories.map((c, i) => `${c.name}=[${shuffled.filter(t => t.categoryIndex === i).map(t => `${t.coord}:${t.word}`).join(",")}]`).join(" | "));
 
-  broadcastGame();
-}
-
-function clearSelection() {
-  game.staging.words.forEach(w => {
-    const tile = game.tiles.find(t => t.word === w.word && t.status === "staged");
-    if (tile) tile.status = "unsolved";
-  });
-  game.staging = { categoryIndex: null, words: [] };
   broadcastGame();
 }
 
@@ -212,7 +219,6 @@ function revealHint() {
     .filter(i => !game.solved.some(s => s.name === game.puzzle.categories[i].name))
     .filter(i => !game.hintedCategoryIndexes.includes(i));
   if (unsolvedUnhinted.length === 0) return;
-  // Keep at least one category a full mystery if more than one remains unhinted.
   if (unsolvedUnhinted.length <= 1 && game.solved.length < game.puzzle.categories.length - 1) return;
   game.hintedCategoryIndexes.push(unsolvedUnhinted[0]);
   broadcastGame();
@@ -223,20 +229,34 @@ function setStrictMode(enabled) {
   broadcastGame();
 }
 
-function endPuzzleRevealAll() {
+function revealAllRemaining(reason) {
+  game.tiles.forEach(t => { if (t.status === "unsolved") t.status = "revealed"; });
   game.active = false;
   broadcastGame();
 }
 
 // ---------------------------------------------------------------------------
 // 5. CHAT MESSAGE PROCESSING PIPELINE
-//    Shared by: real TikTok chat, Test Mode simulated chat, Offline Mode
-//    host input, and the always-available manual "type as chat" box.
-//    Viewers simply type ONE WORD they see on the board. If it fits the
-//    group currently being built, it's added. Four matching words = solved!
+//    Shared by: real TikTok chat, the manual composer (used for testing,
+//    offline solo play, or host seeding), and simulated test messages.
+//
+//    A valid attempt = a SINGLE message containing 4 distinct board
+//    coordinates (e.g. "A1 B2 C3 D4", "a1,b2,c2,d4", even "A1B2C3D4"
+//    all work). If all 4 belong to the same hidden category, that viewer
+//    wins the whole category. Anything else (fewer than 4 coordinates
+//    found, unrelated chat, emoji spam) is simply not a guess and is
+//    ignored -- so ordinary chat chatter never disrupts the game.
 // ---------------------------------------------------------------------------
-function normalizeGuess(raw) {
-  return String(raw || "").trim().toUpperCase().replace(/[^A-Z]/g, "");
+function extractCoords(text) {
+  const matches = text.match(/[A-Da-d]\d{1,2}/g) || [];
+  const seen = new Set();
+  const coords = [];
+  for (const m of matches) {
+    const c = m.toUpperCase();
+    if (!seen.has(c)) { seen.add(c); coords.push(c); }
+    if (coords.length === 4) break;
+  }
+  return coords.length === 4 ? coords : null;
 }
 
 function processChatMessage(username, rawText) {
@@ -250,65 +270,58 @@ function processChatMessage(username, rawText) {
 
     if (!game.active || !game.puzzle) return;
 
-    const word = normalizeGuess(text);
-    if (!word) return;
-
-    const tile = game.tiles.find(t => t.word === word);
-    if (!tile || tile.status !== "unsolved") return; // not on board, or already used
+    const coords = extractCoords(text);
+    if (!coords) return; // not a complete 4-coordinate attempt, ignore silently
 
     const uname = username && username.trim() ? username.trim() : "anonymous";
 
-    if (game.staging.words.length === 0) {
-      // Start a brand new candidate group.
-      tile.status = "staged";
-      game.staging = { categoryIndex: tile.categoryIndex, words: [{ word, username: uname }] };
-      io.emit("guess:hit", { username: uname, word });
-      broadcastGame();
+    const tiles = coords.map(c => game.tiles.find(t => t.coord === c));
+    if (tiles.some(t => !t)) {
+      io.emit("guess:miss", { username: uname, reason: "invalid" });
+      return;
+    }
+    if (tiles.some(t => t.status !== "unsolved")) {
+      io.emit("guess:miss", { username: uname, reason: "used" });
       return;
     }
 
-    if (tile.categoryIndex === game.staging.categoryIndex) {
-      tile.status = "staged";
-      game.staging.words.push({ word, username: uname });
-      io.emit("guess:hit", { username: uname, word });
+    const counts = {};
+    tiles.forEach(t => { counts[t.categoryIndex] = (counts[t.categoryIndex] || 0) + 1; });
+    const maxCount = Math.max(...Object.values(counts));
 
-      if (game.staging.words.length === 4) {
-        const cat = game.puzzle.categories[game.staging.categoryIndex];
-        const contributors = [...new Set(game.staging.words.map(w => w.username))];
-        game.staging.words.forEach(w => {
-          const t = game.tiles.find(t2 => t2.word === w.word);
-          if (t) t.status = "solved";
-          awardPoints(w.username, 20);
-        });
-        awardPoints(uname, 30); // bonus to whoever completed the group
-        awardWin(uname);
-        game.solved.push({ name: cat.name, color: cat.color, words: game.staging.words.map(w => w.word), contributors });
-        game.staging = { categoryIndex: null, words: [] };
+    if (maxCount === 4) {
+      const catIndex = tiles[0].categoryIndex;
+      const cat = game.puzzle.categories[catIndex];
+      tiles.forEach(t => { t.status = "solved"; });
+      awardPoints(uname, 100);
+      awardWin(uname);
+      game.solved.push({ name: cat.name, color: cat.color, contributor: uname });
 
-        broadcastLeaderboard();
-        io.emit("category:solved", { name: cat.name, color: cat.color, words: game.solved[game.solved.length - 1].words, contributors });
+      broadcastLeaderboard();
+      io.emit("category:solved", { name: cat.name, color: cat.color, contributor: uname, coords });
 
-        if (game.solved.length === game.puzzle.categories.length) {
-          game.active = false;
-          io.emit("puzzle:complete", { title: game.puzzle.title });
-        }
+      if (game.solved.length === game.puzzle.categories.length) {
+        game.active = false;
+        io.emit("puzzle:complete", { title: game.puzzle.title });
       }
       broadcastGame();
     } else {
-      // Doesn't fit the group currently being built.
-      io.emit("guess:miss", { username: uname, word });
+      if (maxCount === 3) {
+        io.emit("guess:oneaway", { username: uname });
+      } else {
+        io.emit("guess:miss", { username: uname, reason: "wrong" });
+      }
       if (game.strictMode) {
         game.mistakes += 1;
-        clearSelection(); // also broadcasts
         if (game.mistakes >= game.maxMistakes) {
-          endPuzzleRevealAll();
+          revealAllRemaining("mistakes");
           io.emit("puzzle:failed", { title: game.puzzle.title });
         } else {
           broadcastGame();
         }
       }
-      // In casual (non-strict) mode, mismatched guesses are simply ignored
-      // so one off-topic chat message never disrupts group progress.
+      // In casual (non-strict) mode, a wrong 4-coordinate attempt costs
+      // nothing -- it just doesn't count, so the game keeps flowing.
     }
   } catch (err) {
     // A single malformed comment must NEVER crash the game.
@@ -320,9 +333,6 @@ function processChatMessage(username, rawText) {
 // 6. TIKTOK LIVE CONNECTION -- robust parsing + auto-retry
 // ---------------------------------------------------------------------------
 function extractUserAndText(raw) {
-  // Fallback chain across every plausible field name/shape the connector
-  // library has used across versions, so a library update never silently
-  // breaks the whole game.
   const username =
     raw?.user?.uniqueId || raw?.user?.nickname || raw?.uniqueId ||
     raw?.nickname || raw?.user?.userId || raw?.userId || "unknown";
@@ -335,14 +345,10 @@ function registerTikTokHandlers(connection) {
 
   connection.on(chatEventName, (raw) => {
     try {
-      // Requirement: log the FULL raw shape of every incoming message so it
-      // can be inspected/debugged even though the host has no server console.
       console.log("[tiktok:RAW CHAT EVENT]", JSON.stringify(raw));
       const { username, text } = extractUserAndText(raw);
       processChatMessage(username, text);
-    } catch (err) {
-      console.error("[tiktok chat handler] Safely ignored an error:", err?.message);
-    }
+    } catch (err) { console.error("[tiktok chat handler] Safely ignored an error:", err?.message); }
   });
 
   if (chatEventName !== "chat") {
@@ -351,26 +357,18 @@ function registerTikTokHandlers(connection) {
         console.log("[tiktok:RAW CHAT EVENT - fallback listener]", JSON.stringify(raw));
         const { username, text } = extractUserAndText(raw);
         processChatMessage(username, text);
-      } catch (err) {
-        console.error("[tiktok chat fallback handler] Safely ignored an error:", err?.message);
-      }
+      } catch (err) { console.error("[tiktok chat fallback handler] Safely ignored an error:", err?.message); }
     });
   }
 
   connection.on("disconnected", () => {
-    try {
-      tiktok.status = "disconnected";
-      tiktok.message = "Disconnected from TikTok LIVE.";
-      broadcastTikTokStatus();
-    } catch (err) { console.error("[tiktok disconnected handler] error:", err?.message); }
+    try { tiktok.status = "disconnected"; tiktok.message = "Disconnected from TikTok LIVE."; broadcastTikTokStatus(); }
+    catch (err) { console.error("[tiktok disconnected handler] error:", err?.message); }
   });
 
   connection.on("streamEnd", () => {
-    try {
-      tiktok.status = "disconnected";
-      tiktok.message = "The live stream has ended.";
-      broadcastTikTokStatus();
-    } catch (err) { console.error("[tiktok streamEnd handler] error:", err?.message); }
+    try { tiktok.status = "disconnected"; tiktok.message = "The live stream has ended."; broadcastTikTokStatus(); }
+    catch (err) { console.error("[tiktok streamEnd handler] error:", err?.message); }
   });
 
   connection.on("error", (err) => {
@@ -434,7 +432,7 @@ io.on("connection", (socket) => {
   console.log("[socket] Client connected:", socket.id);
   socket.emit("state:full", fullStatePayload());
 
-  socket.on("host:connectTikTok", ({ username, signApiKey }) => {
+  socket.on("host:connectTikTok", ({ username, signApiKey } = {}) => {
     try {
       if (!username || !signApiKey) {
         tiktok.status = "error";
@@ -456,21 +454,17 @@ io.on("connection", (socket) => {
     try { revealHint(); } catch (err) { console.error("[host:revealHint] error:", err?.message); }
   });
 
-  socket.on("host:clearSelection", () => {
-    try { clearSelection(); } catch (err) { console.error("[host:clearSelection] error:", err?.message); }
-  });
-
   socket.on("host:toggleStrictMode", ({ enabled } = {}) => {
     try { setStrictMode(enabled); } catch (err) { console.error("[host:toggleStrictMode] error:", err?.message); }
   });
 
   socket.on("host:endPuzzle", () => {
-    try { endPuzzleRevealAll(); } catch (err) { console.error("[host:endPuzzle] error:", err?.message); }
+    try { revealAllRemaining("host"); } catch (err) { console.error("[host:endPuzzle] error:", err?.message); }
   });
 
-  // Used by: Test Mode simulated chat, Offline Mode manual guesses, and the
-  // always-on host "manual comment" box. All go through the exact same
-  // pipeline a real TikTok comment would use.
+  // Used by: the manual composer (testing, offline solo play, host seeding)
+  // and simulated test messages. All go through the exact same pipeline a
+  // real TikTok comment would use.
   socket.on("chat:inject", ({ username, text } = {}) => {
     try { processChatMessage(username && username.trim() ? username.trim() : "Host", text); }
     catch (err) { console.error("[chat:inject] error:", err?.message); }
